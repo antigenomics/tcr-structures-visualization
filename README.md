@@ -1,6 +1,6 @@
 # TCR structures visualization
 
-
+Project devoted to TCR:pMHC strucutre visualization and processing
 
 ## Getting started
 
