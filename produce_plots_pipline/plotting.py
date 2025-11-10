@@ -1,26 +1,26 @@
+from matplotlib import pyplot as plt
+
 from coordinates import *
 import re
 
 
 def plot_combined_residue_graph_pca(coords_ca, coords_all, atom_to_ca_map, max_distance=5.0,
-                                 pdb_filename=None, save_dir=None):
- 
+                                    pdb_filename=None, save_dir=None):
     amino_acid_dict = {
-        'A': 'ALA', 'C': 'CYS', 'D': 'ASP', 'E': 'GLU', 'F': 'PHE', 
-        'G': 'GLY', 'H': 'HIS', 'I': 'ILE', 'K': 'LYS', 'L': 'LEU', 
-        'M': 'MET', 'N': 'ASN', 'P': 'PRO', 'Q': 'GLN', 'R': 'ARG', 
+        'A': 'ALA', 'C': 'CYS', 'D': 'ASP', 'E': 'GLU', 'F': 'PHE',
+        'G': 'GLY', 'H': 'HIS', 'I': 'ILE', 'K': 'LYS', 'L': 'LEU',
+        'M': 'MET', 'N': 'ASN', 'P': 'PRO', 'Q': 'GLN', 'R': 'ARG',
         'S': 'SER', 'T': 'THR', 'V': 'VAL', 'W': 'TRP', 'Y': 'TYR'
     }
 
     fig = plt.figure(figsize=(12, 10))
-    ax = fig.add_subplot(111,)
-    
-    
+    ax = fig.add_subplot(111, )
+
     chains = sorted(set(key[0] for key in coords_ca))
-    
+
     chain_to_color = {'CDR3_alpha': 'green', 'CDR3_beta': 'red', 'peptide': 'blue'}
     legend_elements = []
-    j= 0
+    j = 0
     for chain_id in chains:
         chain_residues = [(res_key, coords_ca[res_key]) for res_key in coords_ca if res_key[0] == chain_id]
         chain_residues.sort(key=lambda x: x[0][2])
@@ -32,11 +32,9 @@ def plot_combined_residue_graph_pca(coords_ca, coords_all, atom_to_ca_map, max_d
                                       markersize=10,
                                       linestyle='-'))
 
-        
         pc1 = [res[1][3] for res in chain_residues]
         pc2 = [res[1][4] for res in chain_residues]
-        
-        
+
         for i, (res_key, coord) in enumerate(chain_residues):
             ax.plot([coord[3]], [coord[4]],
                     marker='s',
@@ -60,7 +58,7 @@ def plot_combined_residue_graph_pca(coords_ca, coords_all, atom_to_ca_map, max_d
         for i in range(len(chain_residues) - 1):
             ax.plot([pc1[i], pc1[i + 1]], [pc2[i], pc2[i + 1]],
                     c=chain_to_color[chain_id], alpha=1, linestyle='-')
-        j+=1
+        j += 1
     drawn_connections = set()
     ca_connections_drawn = set()
     atomic_contacts = []
@@ -84,9 +82,8 @@ def plot_combined_residue_graph_pca(coords_ca, coords_all, atom_to_ca_map, max_d
                 ca_pair = frozenset((ca_i, ca_j))
                 atom_pair = frozenset((atom_key_i, atom_key_j))
 
-               
                 if ca_pair not in ca_connections_drawn:
-                    
+
                     if ca_i[0] == 'peptide' or ca_j[0] == 'peptide':
                         connection_color = 'black'
                         connction_style = 'dotted'
@@ -95,15 +92,13 @@ def plot_combined_residue_graph_pca(coords_ca, coords_all, atom_to_ca_map, max_d
                         connection_color = 'black'
                         connction_style = '--'
                         linewidth = 0.2
-                        
-                        
+
                     c1 = coords_ca[ca_i]
                     c2 = coords_ca[ca_j]
                     ax.plot([c1[3], c2[3]], [c1[4], c2[4]],
                             c=connection_color, alpha=1, linestyle=connction_style, linewidth=linewidth)
                     ca_connections_drawn.add(ca_pair)
 
-              
                 if atom_pair not in drawn_connections and atom_pair not in ca_connections_drawn:
                     drawn_connections.add(atom_pair)
 
@@ -113,14 +108,14 @@ def plot_combined_residue_graph_pca(coords_ca, coords_all, atom_to_ca_map, max_d
                     atom_info_j = (atom_key_j[0], resname_j, atom_key_j[2], atom_key_j[3])
                     atomic_contacts.append((atom_info_i, atom_info_j))
 
-    num_drawn_connections = len(ca_connections_drawn)         
-    num_nonredundant_contacts = len(drawn_connections)        
-    
+    num_drawn_connections = len(ca_connections_drawn)
+    num_nonredundant_contacts = len(drawn_connections)
+
     ax.set_axis_off()
     ax.set_xlabel('X (Å)')
     ax.set_ylabel('Y (Å)')
 
-    #ax.legend(handles=legend_elements, loc='best')
+    # ax.legend(handles=legend_elements, loc='best')
     plt.tight_layout()
 
     if pdb_filename:
@@ -146,24 +141,22 @@ def plot_combined_residue_graph_pca(coords_ca, coords_all, atom_to_ca_map, max_d
 
 
 def plot_combined_residue_graph_pca_simple(coords_ca, coords_all, atom_to_ca_map, max_distance=5.0,
-                                 pdb_filename=None, save_dir=None):
- 
+                                           pdb_filename=None, save_dir=None):
     amino_acid_dict = {
-        'A': 'ALA', 'C': 'CYS', 'D': 'ASP', 'E': 'GLU', 'F': 'PHE', 
-        'G': 'GLY', 'H': 'HIS', 'I': 'ILE', 'K': 'LYS', 'L': 'LEU', 
-        'M': 'MET', 'N': 'ASN', 'P': 'PRO', 'Q': 'GLN', 'R': 'ARG', 
+        'A': 'ALA', 'C': 'CYS', 'D': 'ASP', 'E': 'GLU', 'F': 'PHE',
+        'G': 'GLY', 'H': 'HIS', 'I': 'ILE', 'K': 'LYS', 'L': 'LEU',
+        'M': 'MET', 'N': 'ASN', 'P': 'PRO', 'Q': 'GLN', 'R': 'ARG',
         'S': 'SER', 'T': 'THR', 'V': 'VAL', 'W': 'TRP', 'Y': 'TYR'
     }
 
     fig = plt.figure(figsize=(12, 10))
-    ax = fig.add_subplot(111,)
-    
-    
+    ax = fig.add_subplot(111, )
+
     chains = sorted(set(key[0] for key in coords_ca))
-    
+
     chain_to_color = {'CDR3_alpha': 'green', 'CDR3_beta': 'red', 'peptide': 'blue'}
     legend_elements = []
-    j= 0
+    j = 0
     for chain_id in chains:
         chain_residues = [(res_key, coords_ca[res_key]) for res_key in coords_ca if res_key[0] == chain_id]
         chain_residues.sort(key=lambda x: x[0][2])
@@ -175,11 +168,9 @@ def plot_combined_residue_graph_pca_simple(coords_ca, coords_all, atom_to_ca_map
                                       markersize=10,
                                       linestyle='-'))
 
-        
         pc1 = [res[1][3] for res in chain_residues]
         pc2 = [res[1][4] for res in chain_residues]
-        
-        
+
         for i, (res_key, coord) in enumerate(chain_residues):
             ax.plot([coord[3]], [coord[4]],
                     marker='.',
@@ -194,7 +185,7 @@ def plot_combined_residue_graph_pca_simple(coords_ca, coords_all, atom_to_ca_map
         for i in range(len(chain_residues) - 1):
             ax.plot([pc1[i], pc1[i + 1]], [pc2[i], pc2[i + 1]],
                     c=chain_to_color[chain_id], alpha=1, linestyle='-')
-        j+=1
+        j += 1
     drawn_connections = set()
     ca_connections_drawn = set()
     atomic_contacts = []
@@ -218,9 +209,8 @@ def plot_combined_residue_graph_pca_simple(coords_ca, coords_all, atom_to_ca_map
                 ca_pair = frozenset((ca_i, ca_j))
                 atom_pair = frozenset((atom_key_i, atom_key_j))
 
-               
                 if ca_pair not in ca_connections_drawn:
-                    
+
                     if ca_i[0] == 'peptide' or ca_j[0] == 'peptide':
                         connection_color = 'black'
                         connction_style = 'dotted'
@@ -229,15 +219,13 @@ def plot_combined_residue_graph_pca_simple(coords_ca, coords_all, atom_to_ca_map
                         connection_color = 'black'
                         connction_style = '--'
                         linewidth = 0.2
-                        
-                        
+
                     c1 = coords_ca[ca_i]
                     c2 = coords_ca[ca_j]
                     ax.plot([c1[3], c2[3]], [c1[4], c2[4]],
                             c=connection_color, alpha=1, linestyle=connction_style, linewidth=linewidth)
                     ca_connections_drawn.add(ca_pair)
 
-              
                 if atom_pair not in drawn_connections and atom_pair not in ca_connections_drawn:
                     drawn_connections.add(atom_pair)
 
@@ -246,15 +234,14 @@ def plot_combined_residue_graph_pca_simple(coords_ca, coords_all, atom_to_ca_map
                     atom_info_i = (atom_key_i[0], resname_i, atom_key_i[2], atom_key_i[3])
                     atom_info_j = (atom_key_j[0], resname_j, atom_key_j[2], atom_key_j[3])
                     atomic_contacts.append((atom_info_i, atom_info_j))
-        
-    
+
     ax.set_axis_off()
 
     plt.tight_layout()
 
     if pdb_filename:
         base_name = os.path.splitext(os.path.basename(pdb_filename))[0]
-        image_filename = base_name +'_simplified'+ '.svg'
+        image_filename = base_name + '_simplified' + '.svg'
         if save_dir:
             os.makedirs(save_dir, exist_ok=True)
             image_filename = os.path.join(save_dir, image_filename)

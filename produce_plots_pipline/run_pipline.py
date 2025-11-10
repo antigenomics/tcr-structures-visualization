@@ -20,7 +20,7 @@ def process_folder(folder, pca):
         if pdb_file.endswith('.pdb'):
             complex_hash = pdb_file.split('/')[-1][:-4].split('_')[-1]
 
-            metadata_for_generation_i = metadata_for_generation[metadata_for_generation['TCR_hash'] == complex_hash].iloc[0]
+            metadata_for_generation_i = data_generation[data_generation['TCR_hash'] == complex_hash].iloc[0]
 
             TRA_aa_seq = metadata_for_generation_i['cdr3.alpha']
             TRB_aa_seq = metadata_for_generation_i['cdr3.beta']
