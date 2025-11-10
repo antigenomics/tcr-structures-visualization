@@ -1,4 +1,7 @@
+import os
+
 from matplotlib import pyplot as plt
+from matplotlib.lines import Line2D
 
 from coordinates import *
 import re
@@ -258,14 +261,11 @@ def svg_to_html(svg_input_path, html_output_path):
     svg_input_path (str): Path to the input SVG file.
     html_output_path (str): Path to the output HTML file.
     """
-    # Read the SVG content
     with open(svg_input_path, 'r', encoding='utf-8') as svg_file:
         svg_content = svg_file.read()
 
-    # Remove XML declaration if present (e.g., <?xml ... ?>)
     svg_content = re.sub(r'<\?xml.*?\?\>', '', svg_content).strip()
 
-    # Create the HTML template with the SVG embedded
     html_template = f"""<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -278,7 +278,6 @@ def svg_to_html(svg_input_path, html_output_path):
 </body>
 </html>"""
 
-    # Write to the output HTML file
     with open(html_output_path, 'w', encoding='utf-8') as html_file:
         html_file.write(html_template)
 
