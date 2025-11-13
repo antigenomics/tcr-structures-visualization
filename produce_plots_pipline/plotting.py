@@ -5,6 +5,56 @@ from matplotlib.lines import Line2D
 
 from coordinates import *
 import re
+import pandas as pd
+
+amino_acid_dict = {'ALA': 'A',
+                   'CYS': 'C',
+                   'ASP': 'D',
+                   'GLU': 'E',
+                   'PHE': 'F',
+                   'GLY': 'G',
+                   'HIS': 'H',
+                   'ILE': 'I',
+                   'LYS': 'K',
+                   'LEU': 'L',
+                   'MET': 'M',
+                   'ASN': 'N',
+                   'PRO': 'P',
+                   'GLN': 'Q',
+                   'ARG': 'R',
+                   'SER': 'S',
+                   'THR': 'T',
+                   'VAL': 'V',
+                   'TRP': 'W',
+                   'TYR': 'Y'}
+
+
+def process_contacts_file(contacts_path):
+    data_contacts = pd.read_csv(contacts_path, header=None)
+
+    data_contacts[0] = data_contacts[0].apply(lambda x: x[2:-1])
+    data_contacts[1] = data_contacts[1].apply(lambda x: x[2:-1])
+    data_contacts[3] = data_contacts[3].apply(lambda x: x.split("') - ('"))
+    data_contacts[4] = data_contacts[4].apply(lambda x: x[1:])
+    data_contacts[4] = data_contacts[4].apply(lambda x: x[1:-1])
+    data_contacts[6] = data_contacts[6].apply(lambda x: x[2:-2])
+
+    data_contacts['atom_from'] = data_contacts[3].apply(lambda x: x[0][2:])
+    data_contacts['chain_to'] = data_contacts[3].apply(lambda x: x[1][:-1])
+
+    data_contacts.rename(
+        columns={0: 'chain_from', 1: 'aa_from', 2: 'res_num_from', 4: 'aa_to', 5: 'res_num_to', 6: 'atom_to'},
+        inplace=True)
+    data_contacts.drop(3, inplace=True, axis=1)
+
+    data_contacts = data_contacts.drop_duplicates(['chain_from', 'aa_from', 'chain_to', 'aa_to'])
+
+    data_contacts['aa_from'] = data_contacts['aa_from'].map(amino_acid_dict)
+    data_contacts['aa_to'] = data_contacts['aa_to'].map(amino_acid_dict)
+
+    data_contacts.drop(['atom_to', 'atom_from'], axis=1, inplace=True)
+
+    return data_contacts
 
 
 def plot_combined_residue_graph_pca(coords_ca, coords_all, atom_to_ca_map, max_distance=5.0,
@@ -111,8 +161,6 @@ def plot_combined_residue_graph_pca(coords_ca, coords_all, atom_to_ca_map, max_d
                     atom_info_j = (atom_key_j[0], resname_j, atom_key_j[2], atom_key_j[3])
                     atomic_contacts.append((atom_info_i, atom_info_j))
 
-    num_drawn_connections = len(ca_connections_drawn)
-    num_nonredundant_contacts = len(drawn_connections)
 
     ax.set_axis_off()
     ax.set_xlabel('X (Å)')
@@ -128,7 +176,6 @@ def plot_combined_residue_graph_pca(coords_ca, coords_all, atom_to_ca_map, max_d
             os.makedirs(save_dir, exist_ok=True)
             image_filename = os.path.join(save_dir, image_filename)
         plt.savefig(image_filename, dpi=300, bbox_inches='tight', transparent=True)
-        print(f'Сохранено изображение: {image_filename}')
 
         contacts_filename = base_name + '_contacts.txt'
         if save_dir:
@@ -136,12 +183,10 @@ def plot_combined_residue_graph_pca(coords_ca, coords_all, atom_to_ca_map, max_d
         with open(contacts_filename, 'w') as f:
             for a1, a2 in atomic_contacts:
                 f.write(f"{a1} - {a2}\n")
-        print(f'Сохранён список атомных контактов: {contacts_filename}')
+        aa_contacts = process_contacts_file(contacts_filename)
+        aa_contacts.to_csv(base_name + 'aa_contacts.tsv', sep='\t')
 
     plt.show()
-
-    return atomic_contacts, num_drawn_connections, num_nonredundant_contacts
-
 
 def plot_combined_residue_graph_pca_simple(coords_ca, coords_all, atom_to_ca_map, max_distance=5.0,
                                            pdb_filename=None, save_dir=None):
