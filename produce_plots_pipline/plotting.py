@@ -183,8 +183,13 @@ def plot_combined_residue_graph_pca(coords_ca, coords_all, atom_to_ca_map, max_d
         with open(contacts_filename, 'w') as f:
             for a1, a2 in atomic_contacts:
                 f.write(f"{a1} - {a2}\n")
+
         aa_contacts = process_contacts_file(contacts_filename)
-        aa_contacts.to_csv(base_name + 'aa_contacts.tsv', sep='\t')
+        aa_contacts_filename = base_name + 'aa_contacts.tsv'
+        if save_dir:
+            aa_contacts_filename = os.path.join(save_dir, aa_contacts_filename)
+
+        aa_contacts.to_csv(aa_contacts_filename, sep='\t')
 
     plt.show()
 
