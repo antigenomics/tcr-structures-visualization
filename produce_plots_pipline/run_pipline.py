@@ -88,7 +88,7 @@ if __name__ == '__main__':
 
 
     # destribute models by antigen folders
-    for structure in os.listdir(input_folder):
+    for structure in os.listdir(input_folder_align_first):
 
         if structure.endswith('.pdb'):
             tcr_hash = structure[8:-4]
