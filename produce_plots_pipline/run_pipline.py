@@ -1,14 +1,11 @@
+import argparse
 from turtle import pd
-
-import matplotplib.pyplot as plt
-import subprocess
 import pickle
 
 from alingment import *
-from coordinates import *
 from plotting import *
 
-script_path = './get_files.sh'
+#script_path = './get_files.sh'
 plt.rcParams['font.family'] = 'monospace'
 plt.rcParams['font.monospace'] = ['Courier New'] + plt.rcParams['font.monospace']
 
@@ -26,8 +23,6 @@ def process_folder(folder, pca):
             TRB_aa_seq = metadata_for_generation_i['cdr3.beta']
             antigen_epitope = metadata_for_generation_i['antigen.epitope']
 
-            # NLVPMVATV
-            # coords_ca, coords_all, atom_to_ca_map = extract_coords_from_pdb(pdb_file,  chains=['C', 'A', 'B'], sequences=['NLVPMVATV', 'CIRDNNNDMRF', 'CASSLAPGATNEKLFF'])
             coords_ca, coords_all, atom_to_ca_map = extract_coords_from_pdb_by_seq(folder + pdb_file, TRA_aa_seq,
                                                                                    TRB_aa_seq, antigen_epitope)
 
@@ -66,33 +61,56 @@ pca = pickle.load(open(filename, 'rb'))
 if __name__ == '__main__':
 
     # get models and aling them all
-    args = ['/projects/structures/clusters/HLA-A/', '/projects/structures/clusters/MHCI_data/']
-    subprocess.run([script_path] + args)
+    # args = ['/projects/structures/clusters/HLA-A/', '/projects/structures/clusters/MHCI_data/']
+    # subprocess.run([script_path] + args)
+    #
+    # args = ['/projects/structures/clusters/HLA-B/', '/projects/structures/clusters/MHCI_data/']
+    # subprocess.run([script_path] + args)
+    #
 
-    args = ['/projects/structures/clusters/HLA-B/', '/projects/structures/clusters/MHCI_data/']
-    subprocess.run([script_path] + args)
+    parser = argparse.ArgumentParser(description='Input and output for transposition calculator')
+    parser.add_argument('-i',
+                        '--input',
+                        type=str,
+                        default='.',
+                        help='input folder with .pdb files'
+                        )
+    parser.add_argument('-o',
+                        '--output',
+                        type=str,
+                        default='.',
+                        help='folder for output'
+                        )
 
-    align_folder('/projects/structures/clusters/MHCI_data/', '/projects/structures/clusters/MHCI_to_align')
+    args = parser.parse_args()
+    input_folder = args.input
+
+    input_folder_align_first = input_folder + 'align'
+
+    align_folder(input_folder, input_folder_align_first)
+
 
     # destribute models by antigen folders
-    for structure in os.listdir('/projects/structures/clusters/MHCI_to_align/'):
+    for structure in os.listdir(input_folder):
 
         if structure.endswith('.pdb'):
             tcr_hash = structure[8:-4]
 
             structure_epitope = data_generation.loc[tcr_hash]['antigen.epitope']
 
-            os.makedirs(f'/projects/structures/clusters/MHCI_to_align/{structure_epitope}', exist_ok=True)
-            os.rename(f'/projects/structures/clusters/MHCI_to_align/{structure}',
-                      f'/projects/structures/clusters/MHCI_to_align/{structure_epitope}/{structure}')
+            os.makedirs(f'{input_folder_align_first}/{structure_epitope}', exist_ok=True)
+            os.rename(f'{input_folder_align_first}/{structure}',
+                      f'{input_folder_align_first}/{structure_epitope}/{structure}')
+
+    input_folder_align_second = input_folder + 'align_2'
 
     # aling models within antigen folders
-    for epitope in os.listdir('/projects/structures/clusters/MHCI_to_align/'):
+    for epitope in os.listdir(input_folder_align_first):
         if '_' not in epitope:
-            align_folder(f'/projects/structures/clusters/MHCI_to_align/{epitope}/',
-                         f'/projects/structures/clusters/MHCI_align/{epitope}/')
+            align_folder(f'{input_folder_align_first}/{epitope}/',
+                         f'{input_folder_align_second}/{epitope}/')
 
     # generate plots
-    for folder in os.listdir('/projects/structures/clusters/MHCI_align/'):
+    for folder in os.listdir(input_folder_align_second):
         if "_" not in folder:
-            process_folder(f'/projects/structures/clusters/MHCI_align/{folder}/', pca)
+            process_folder(f'{input_folder_align_second}/{folder}/', pca)
