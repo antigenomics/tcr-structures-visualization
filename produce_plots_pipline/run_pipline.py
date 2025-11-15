@@ -79,7 +79,7 @@ if __name__ == '__main__':
     args = parser.parse_args()
     input_folder = args.input
 
-    input_folder_align_first = input_folder + '_align'
+    input_folder_align_first = input_folder[:-1] + '_align'
     print('!!!')
     print(input_folder_align_first)
     print('!!!')
@@ -99,7 +99,7 @@ if __name__ == '__main__':
             os.rename(f'{input_folder_align_first}/{structure}',
                       f'{input_folder_align_first}/{structure_epitope}/{structure}')
 
-    input_folder_align_second = input_folder + '_align_2'
+    input_folder_align_second = input_folder[:-1] + '_align_2'
 
     # aling models within antigen folders
     for epitope in os.listdir(input_folder_align_first):
