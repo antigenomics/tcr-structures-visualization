@@ -86,6 +86,7 @@ if __name__ == '__main__':
 
     align_folder(input_folder, input_folder_align_first)
 
+    input_folder_align_second = input_folder[:-1] + '_align_2'
 
     # destribute models by antigen folders
     for structure in os.listdir(input_folder_align_first):
@@ -95,11 +96,9 @@ if __name__ == '__main__':
 
             structure_epitope = data_generation.loc[tcr_hash]['antigen.epitope']
 
-            os.makedirs(f'{input_folder_align_first}/{structure_epitope}', exist_ok=True)
+            os.makedirs(f'{input_folder_align_second}/{structure_epitope}', exist_ok=True)
             os.rename(f'{input_folder_align_first}/{structure}',
-                      f'{input_folder_align_first}/{structure_epitope}/{structure}')
-
-    input_folder_align_second = input_folder[:-1] + '_align_2'
+                      f'{input_folder_align_second}/{structure_epitope}/{structure}')
 
     # aling models within antigen folders
     for epitope in os.listdir(input_folder_align_first):
