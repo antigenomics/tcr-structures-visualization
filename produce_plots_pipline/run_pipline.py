@@ -1,6 +1,8 @@
 import argparse
 from turtle import pd
 import pickle
+import shutil
+
 
 from alingment import *
 from plotting import *
@@ -97,7 +99,7 @@ if __name__ == '__main__':
             structure_epitope = data_generation.loc[tcr_hash]['antigen.epitope']
 
             os.makedirs(f'{input_folder_align_second}/{structure_epitope}', exist_ok=True)
-            os.rename(f'{input_folder_align_first}/{structure}',
+            shutil.copyfile(f'{input_folder_align_first}/{structure}',
                       f'{input_folder_align_second}/{structure_epitope}/{structure}')
 
     # aling models within antigen folders
