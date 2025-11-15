@@ -185,7 +185,7 @@ def plot_combined_residue_graph_pca(coords_ca, coords_all, atom_to_ca_map, max_d
                 f.write(f"{a1} - {a2}\n")
 
         aa_contacts = process_contacts_file(contacts_filename)
-        aa_contacts_filename = base_name + 'aa_contacts.tsv'
+        aa_contacts_filename = base_name + '_aa_contacts.tsv'
         if save_dir:
             aa_contacts_filename = os.path.join(save_dir, aa_contacts_filename)
 
