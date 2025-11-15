@@ -10,7 +10,7 @@ plt.rcParams['font.family'] = 'monospace'
 plt.rcParams['font.monospace'] = ['Courier New'] + plt.rcParams['font.monospace']
 
 data_generation = pd.read_csv('/projects/structures/clusters/HomoSapiens_MHCI_all_clusters.tsv', sep='\t', index_col=0)
-
+data_generation = data_generation.set_index('TCR_hash')
 
 def process_folder(folder, pca):
     for pdb_file in os.listdir(folder):
