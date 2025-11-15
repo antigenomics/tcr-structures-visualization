@@ -1,18 +1,17 @@
 import argparse
 from turtle import pd
 import pickle
-import shutil
-
 
 from alingment import *
 from plotting import *
 
-#script_path = './get_files.sh'
+# script_path = './get_files.sh'
 plt.rcParams['font.family'] = 'monospace'
 plt.rcParams['font.monospace'] = ['Courier New'] + plt.rcParams['font.monospace']
 
 data_generation = pd.read_csv('/projects/structures/clusters/HomoSapiens_MHCI_all_clusters.tsv', sep='\t', index_col=0)
 data_generation = data_generation.set_index('TCR_hash')
+
 
 def process_folder(folder, pca):
     for pdb_file in os.listdir(folder):
@@ -99,8 +98,8 @@ if __name__ == '__main__':
             structure_epitope = data_generation.loc[tcr_hash]['antigen.epitope']
 
             os.makedirs(f'{input_folder_align_second}/{structure_epitope}', exist_ok=True)
-            shutil.copyfile(f'{input_folder_align_first}/{structure}',
-                      f'{input_folder_align_second}/{structure_epitope}/{structure}')
+            os.rename(f'{input_folder_align_first}/{structure}',
+                            f'{input_folder_align_first}/{structure_epitope}/{structure}')
 
     # aling models within antigen folders
     for epitope in os.listdir(input_folder_align_first):
