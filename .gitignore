@@ -39,4 +39,4 @@ pip-delete-this-directory.txt
 skeleton_plots/
 
 # Existing exclusions
-produce_plots_pipline/__pycache__/*
+produce_plots_pipline/__pycache__/
