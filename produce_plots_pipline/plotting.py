@@ -84,8 +84,8 @@ def process_contacts_file(contacts_path):
 
     data_contacts = data_contacts.drop_duplicates(['chain_from', 'aa_from', 'chain_to', 'aa_to'])
 
-    data_contacts['aa_from'] = data_contacts['aa_from'].map(amino_acid_dict)
-    data_contacts['aa_to'] = data_contacts['aa_to'].map(amino_acid_dict)
+    data_contacts['aa_from'] = data_contacts['aa_from'].map(AMINO_ACID_DICT)
+    data_contacts['aa_to'] = data_contacts['aa_to'].map(AMINO_ACID_DICT)
 
     data_contacts.drop(['atom_to', 'atom_from'], axis=1, inplace=True)
 
