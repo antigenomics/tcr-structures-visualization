@@ -13,7 +13,64 @@ from plotting import plot_combined_residue_graph_pca, svg_to_html
 plt.rcParams['font.family'] = 'monospace'
 plt.rcParams['font.monospace'] = ['Courier New'] + plt.rcParams['font.monospace']
 
-data_generation = pd.read_csv('/projects/structures/clusters/HomoSapiens_MHCI_all_clusters.tsv', sep='\t', index_col=0)
+chain_fict = {
+    'A': 'TCR_alpha',
+    'B': 'TCR_beta',
+    'C': 'peptide',
+    'D': 'MHC'
+}
+
+amino_acid_dict = {
+    'ALA': 'A', 'CYS': 'C', 'ASP': 'D', 'GLU': 'E', 'PHE': 'F',
+    'GLY': 'G', 'HIS': 'H', 'ILE': 'I', 'LYS': 'K', 'LEU': 'L',
+    'MET': 'M', 'ASN': 'N', 'PRO': 'P', 'GLN': 'Q', 'ARG': 'R',
+    'SER': 'S', 'THR': 'T', 'VAL': 'V', 'TRP': 'W', 'TYR': 'Y'
+}
+
+def extract_ca_to_dataframe(pdb_file_path: str, save_dir: str) -> pd.DataFrame:
+    """
+    Extract CA atom coordinates from a PDB file and save a dataframe.
+
+    Args:
+        pdb_file_path: Path to the PDB file.
+        save_dir: Directory where the TSV should be written.
+
+    Returns:
+        The pandas DataFrame with CA atom coordinates.
+    """
+    structure_hash = os.path.basename(pdb_file_path).split('.')[0].split('aligned_')[-1]
+    ca_data = []
+
+    with open(pdb_file_path, 'r') as f:
+        for line in f:
+            if not line.startswith('ATOM  '):
+                continue
+            atom_name = line[12:16].strip()
+            if atom_name != 'CA':
+                continue
+
+            chain = line[21].strip() or '-'
+            resname = line[17:20].strip()
+            resnum = line[22:27].strip()
+            x = float(line[30:38])
+            y = float(line[38:46])
+            z = float(line[46:54])
+
+            ca_data.append([chain, resname, resnum, round(x, 3), round(y, 3), round(z, 3)])
+
+    df = pd.DataFrame(ca_data, columns=['Chain', 'Residue', 'ResNum', 'X', 'Y', 'Z'])
+    df['Chain'] = df['Chain'].map(chain_fict).fillna(df['Chain'])
+    df['Residue'] = df['Residue'].map(amino_acid_dict).fillna(df['Residue'])
+
+    os.makedirs(save_dir, exist_ok=True)
+    output_path = os.path.join(save_dir, f'{structure_hash}_aa_coordinates.tsv')
+    df.to_csv(output_path, sep='\t', index=False)
+    return df
+
+
+data_generation = pd.read_csv('/projects/structures/clusters/HomoSapiens_MHCI_all_clusters.tsv', sep='\t')
+if 'TCR_hash' not in data_generation.columns:
+    raise KeyError("Expected 'TCR_hash' column in data_generation TSV")
 data_generation = data_generation.set_index('TCR_hash')
 
 
@@ -74,6 +131,11 @@ def process_folder(folder: str, pca) -> None:
         coordinates_db.to_csv(
             os.path.join(folder, "contacts_and_skeleton_plots", f"{complex_hash}_coordinates.tsv"),
             sep='\t'
+        )
+
+        extract_ca_to_dataframe(
+            os.path.join(folder, pdb_file),
+            os.path.join(folder, "contacts_and_skeleton_plots")
         )
 
 
