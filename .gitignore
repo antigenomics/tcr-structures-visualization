@@ -3,4 +3,4 @@
 .idea/tcr-structures-visualization.iml
 .idea/vcs.xml
 .idea/inspectionProfiles/profiles_settings.xml
-produce_plots_pipline/__pycache__/
+produce_plots_pipline/__pycache__/*
