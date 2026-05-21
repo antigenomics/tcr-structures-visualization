@@ -74,19 +74,35 @@ if 'TCR_hash' not in data_generation.columns:
 data_generation = data_generation.set_index('TCR_hash')
 
 
-def process_folder(folder: str, pca) -> None:
+def process_folder(folder: str, pca, overwrite: bool = False) -> None:
     """
     Process a folder of PDB files, extract coordinates, apply PCA, and generate plots.
 
     Args:
         folder: Path to the folder containing PDB files.
         pca: PCA object for dimensionality reduction.
+        overwrite: If True, regenerate outputs even when files already exist.
     """
+    save_dir = os.path.join(folder, "contacts_and_skeleton_plots")
     for pdb_file in os.listdir(folder):
         if not pdb_file.endswith('.pdb'):
             continue
 
         complex_hash = pdb_file[:-4].split('_')[-1]
+        output_files = [
+            os.path.join(save_dir, f"{complex_hash}.svg"),
+            os.path.join(save_dir, f"{complex_hash}_simplified.svg"),
+            os.path.join(save_dir, f"{complex_hash}.html"),
+            os.path.join(save_dir, f"{complex_hash}_simplified.html"),
+            os.path.join(save_dir, f"{complex_hash}_coordinates.tsv"),
+            os.path.join(save_dir, f"{complex_hash}_aa_coordinates.tsv"),
+            os.path.join(save_dir, f"{complex_hash}_contacts.txt"),
+            os.path.join(save_dir, f"{complex_hash}_aa_contacts.tsv"),
+        ]
+        if not overwrite and all(os.path.exists(path) for path in output_files):
+            print(f"Skipping {pdb_file}: all outputs already exist")
+            continue
+
         metadata = data_generation.loc[complex_hash]
 
         tra_aa_seq = metadata['cdr3.alpha']
@@ -99,13 +115,15 @@ def process_folder(folder: str, pca) -> None:
 
         coords_ca = apply_pca(coords_ca, pca)
 
+        os.makedirs(save_dir, exist_ok=True)
+
         plot_combined_residue_graph_pca(
             coords_ca,
             coords_all,
             atom_to_ca_map,
             max_distance=5.0,
             pdb_filename=complex_hash,
-            save_dir=os.path.join(folder, "contacts_and_skeleton_plots")
+            save_dir=save_dir
         )
         plot_combined_residue_graph_pca(
             coords_ca,
@@ -113,29 +131,29 @@ def process_folder(folder: str, pca) -> None:
             atom_to_ca_map,
             max_distance=5.0,
             pdb_filename=complex_hash,
-            save_dir=os.path.join(folder, "contacts_and_skeleton_plots"),
+            save_dir=save_dir,
             simplified=True
         )
 
         svg_to_html(
-            os.path.join(folder, "contacts_and_skeleton_plots", f"{complex_hash}.svg"),
-            os.path.join(folder, "contacts_and_skeleton_plots", f"{complex_hash}.html")
+            os.path.join(save_dir, f"{complex_hash}.svg"),
+            os.path.join(save_dir, f"{complex_hash}.html")
         )
         svg_to_html(
-            os.path.join(folder, "contacts_and_skeleton_plots", f"{complex_hash}_simplified.svg"),
-            os.path.join(folder, "contacts_and_skeleton_plots", f"{complex_hash}_simplified.html")
+            os.path.join(save_dir, f"{complex_hash}_simplified.svg"),
+            os.path.join(save_dir, f"{complex_hash}_simplified.html")
         )
 
         coordinates_db = pd.DataFrame(coords_ca).T
         coordinates_db.rename(columns={0: 'x', 1: 'y', 2: 'z', 3: 'PC1', 4: 'PC2'}, inplace=True)
         coordinates_db.to_csv(
-            os.path.join(folder, "contacts_and_skeleton_plots", f"{complex_hash}_coordinates.tsv"),
+            os.path.join(save_dir, f"{complex_hash}_coordinates.tsv"),
             sep='\t'
         )
 
         extract_ca_to_dataframe(
             os.path.join(folder, pdb_file),
-            os.path.join(folder, "contacts_and_skeleton_plots")
+            save_dir
         )
 
 
@@ -152,9 +170,15 @@ if __name__ == '__main__':
         default='.',
         help='Input folder with .pdb files'
     )
+    parser.add_argument(
+        '--overwrite',
+        action='store_true',
+        help='Overwrite existing output files instead of skipping'
+    )
 
     args = parser.parse_args()
     input_folder = args.input
+    overwrite = args.overwrite
 
     input_folder_align_first = input_folder.rstrip('/') + '_align'
     print(f"Aligning to: {input_folder_align_first}")
@@ -190,4 +214,4 @@ if __name__ == '__main__':
     for folder in os.listdir(input_folder_align_second):
         if "_" in folder:
             continue
-        process_folder(os.path.join(input_folder_align_second, folder) + '/', pca)
+        process_folder(os.path.join(input_folder_align_second, folder) + '/', pca, overwrite=overwrite)

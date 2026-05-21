@@ -27,7 +27,15 @@ def process_contacts_file(contacts_path: str) -> pd.DataFrame:
     Returns:
         Processed DataFrame with amino acid contacts.
     """
-    data_contacts = pd.read_csv(contacts_path, header=None)
+    try:
+        data_contacts = pd.read_csv(contacts_path, header=None)
+    except pd.errors.EmptyDataError:
+        return pd.DataFrame(
+            columns=[
+                'chain_from', 'aa_from', 'res_num_from',
+                'chain_to', 'aa_to', 'res_num_to'
+            ]
+        )
 
     data_contacts[0] = data_contacts[0].apply(lambda x: x[2:-1])
     data_contacts[1] = data_contacts[1].apply(lambda x: x[2:-1])
@@ -55,34 +63,6 @@ def process_contacts_file(contacts_path: str) -> pd.DataFrame:
     data_contacts = data_contacts.drop_duplicates(
         ['chain_from', 'aa_from', 'chain_to', 'aa_to']
     )
-
-    data_contacts['aa_from'] = data_contacts['aa_from'].map(AMINO_ACID_DICT)
-    data_contacts['aa_to'] = data_contacts['aa_to'].map(AMINO_ACID_DICT)
-
-    data_contacts.drop(['atom_to', 'atom_from'], axis=1, inplace=True)
-
-    return data_contacts
-
-
-def process_contacts_file(contacts_path):
-    data_contacts = pd.read_csv(contacts_path, header=None)
-
-    data_contacts[0] = data_contacts[0].apply(lambda x: x[2:-1])
-    data_contacts[1] = data_contacts[1].apply(lambda x: x[2:-1])
-    data_contacts[3] = data_contacts[3].apply(lambda x: x.split("') - ('"))
-    data_contacts[4] = data_contacts[4].apply(lambda x: x[1:])
-    data_contacts[4] = data_contacts[4].apply(lambda x: x[1:-1])
-    data_contacts[6] = data_contacts[6].apply(lambda x: x[2:-2])
-
-    data_contacts['atom_from'] = data_contacts[3].apply(lambda x: x[0][2:])
-    data_contacts['chain_to'] = data_contacts[3].apply(lambda x: x[1][:-1])
-
-    data_contacts.rename(
-        columns={0: 'chain_from', 1: 'aa_from', 2: 'res_num_from', 4: 'aa_to', 5: 'res_num_to', 6: 'atom_to'},
-        inplace=True)
-    data_contacts.drop(3, inplace=True, axis=1)
-
-    data_contacts = data_contacts.drop_duplicates(['chain_from', 'aa_from', 'chain_to', 'aa_to'])
 
     data_contacts['aa_from'] = data_contacts['aa_from'].map(AMINO_ACID_DICT)
     data_contacts['aa_to'] = data_contacts['aa_to'].map(AMINO_ACID_DICT)
