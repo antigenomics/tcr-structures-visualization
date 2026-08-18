@@ -34,7 +34,8 @@ and injects the HTML into the structure viewer.
 Pipeline and plotting code — **Daniil Luppov** ([@LuppovDaniil](https://github.com/LuppovDaniil)),
 PhD student on the VDJdb project.
 
-Contact-analysis notebooks (`anastasia_notebooks/`) — **Anastasia Alexandrova**.
+Contact-analysis notebooks (`anastasia_notebooks/`) — **Anastasiia Alexandrova**
+([@nastyaleksa04](https://github.com/nastyaleksa04)).
 
 Per-commit authorship is preserved in the git history, which was imported intact from the group's
 internal GitLab.
